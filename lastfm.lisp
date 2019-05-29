@@ -67,4 +67,56 @@
             (map 'list #'identity result))))))
 
 (memoize 'lastfm-get)
+(defun sign (str)
+  (subseq
+   (with-output-to-string (s)
+     (uiop:run-program
+      (format nil "echo -n ~a | md5sum" str)
+      :output s))
+   0 32))
+
+(let ((token nil))
+  (defun fetch-request-token ()
+    (if token
+        token
+        (setf token
+              (first (lastfm-get :auth.gettoken
+                                 (sign (format nil "api_key~amethodauth.gettoken~a"
+                                                   *api-key* *shared-secret*)))))))
+
+  (defun authorize-user ()
+    (uiop:run-program
+     (format nil "xdg-open \"http://www.last.fm/api/auth/?api_key=~a\&token=~a\""
+             *api-key* (fetch-request-token))))
+
+  (defun fetch-web-service-session ()
+    (lastfm-get :auth.getsession
+                (fetch-request-token)
+                (sign (format nil
+                              "api_key~amethodauth.getsessiontoken~a~a"
+                              *api-key*
+                              (fetch-request-token)
+                              *shared-secret*)))))
+
+;; (authorize-user)
+;; (fetch-web-service-session)
+
+(defun love-track-example ()
+  (http-request "http://ws.audioscrobbler.com/2.0/" 
+                :method :post
+                :parameters
+                `(("api_key" . ,*api-key*)
+                  ("artist" . "anathema")
+                  ("method" . "track.love")
+                  ("sk" . ,*sk*)
+                  ("track" . "thin air")
+                  ("api_sig" . ,(sign (format nil
+                                              "api_key~aartist~amethod~ask~atrack~a~a"
+                                              *api-key*
+                                              "anathema"
+                                              "track.love"
+                                              *sk*
+                                              "thin air"
+                                              *shared-secret*))))))
+
 
