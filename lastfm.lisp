@@ -39,7 +39,7 @@
   (http-request *base-url*
      :parameters
      `(("api_key" . ,*api-key*)
-       ("method" .  ,(symbol-name (service-method service)))
+       ("method" .  ,(string-downcase (symbol-name (service-method service))))
        ;; Build alists by matching up the service's
        ;; parameters with the user supplied param-values.
        ,@(mapcar (lambda (m v)
