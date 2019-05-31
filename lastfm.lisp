@@ -119,4 +119,44 @@
                                               "thin air"
                                               *shared-secret*))))))
 
+(defparameter *auth-methods*
+  '(((:track.love :auth) (artist track))
+    ;; ((:track.love :auth) (api_key artist method track sk))
+    ((:track.unlove :auth) (artist track))))
 
+(defun parameters-string (service &rest values)
+  (let* ((params (parameters service))
+         (service-name (first (first service)))
+         (sorted-request-parameters
+           (sort `(("api_key" . ,*api-key*)
+                   ("method" . ,(string-downcase (symbol-name service-name)))
+                   ("sk" . ,*sk*)
+                   ,@(mapcar #'cons (mapcar (lambda (p)
+                                              (string-downcase
+                                               (symbol-name p)))
+                                            params)
+                             values))
+                 #'string-lessp
+                 :key #'first))
+         (sorted-string (format nil "~{~{~a~a~}~}"
+                                (mapcar #'cons->list
+                                        (append sorted-request-parameters
+                                                `(("" . ,*shared-secret*))))))
+         (api-sig (sign sorted-string))
+         (signed-request-parameters
+           (append sorted-request-parameters `(("api_sig" . ,api-sig)))))
+    (http-request "http://ws.audioscrobbler.com/2.0/" 
+                  :method :post
+                  :parameters signed-request-parameters)
+    ))
+
+;; (let ((service (first *auth-methods*)))
+;;   (parameters-string service "anathema" "thin air"))
+
+;; (let ((service (second *auth-methods*)))
+;;   (parameters-string service "anathema" "thin air"))
+
+(defun cons->list (cell)
+  "Transform (1 . 2) into (1 2)"
+  (list (first cell)
+        (rest cell)))
