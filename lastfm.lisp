@@ -1,72 +1,128 @@
 ;;;; lastfm.lisp
 (in-package :lastfm)
 
-(defun config (&key api-key shared-secret username mpvsocket)
+(defun config (&key api-key shared-secret username (sk ""))
   (defparameter *api-key* api-key)
   (defparameter *shared-secret* shared-secret)
-  (defparameter *username* username))
+  (defparameter *username* username)
+  (defparameter *sk* sk))
 
 (load #P"~/.config/.lastfm.lisp")
 
 (defparameter *base-url* "http://ws.audioscrobbler.com/2.0/")
-(defparameter *services*
-  '((:artist.getinfo       (artist)        "bio summary")
-    (:artist.getsimilar    (artist limit)  "artist name")
-    (:artist.gettoptags    (artist)        "tag name")
-    (:artist.gettopalbums  (artist limit)  "album > name")
-    (:artist.gettoptracks  (artist limit)  "track > name")
-    (:artist.search        (artist limit)  "artist name")
-    (:album.getinfo        (artist album)  "track > name")
-    (:tag.getinfo          (tag)           "summary")
-    (:tag.gettoptracks     (tag limit)     "artist > name, track > name")
-    (:tag.gettopartists    (tag limit)     "artist name")
-    (:user.getlovedtracks  (user limit)    "artist > name, track > name")
-    (:auth.gettoken        (api_sig)       "token"))
-  "List of all the Web Services supported by the Last.Fm API (see
-  https://www.last.fm/api):
-- The first field of each service denotes the API method.
-- The second field is a list of all the parameters supported by this method.
-- The last field is a string used to extract the relevant information
-  from the xml response received from last.fm for this method.")
+(defparameter *methods*
+  '((:artist.getinfo      :no-auth  (:artist)         "bio summary"                 )
+    (:artist.getsimilar   :no-auth  (:artist :limit)  "artist name"                 )
+    (:artist.gettoptags   :no-auth  (:artist)         "tag name"                    )
+    (:artist.gettopalbums :no-auth  (:artist :limit)  "album > name"                )
+    (:artist.gettoptracks :no-auth  (:artist :limit)  "track > name"                )
+    (:artist.search       :no-auth  (:artist :limit)  "artist name"                 )
+    (:album.getinfo       :no-auth  (:artist :album)  "track > name"                )
+    (:tag.getinfo         :no-auth  (:tag)            "summary"                     )
+    (:tag.gettoptracks    :no-auth  (:tag :limit)     "artist > name, track > name" )
+    (:tag.gettopartists   :no-auth  (:tag :limit)     "artist name"                 )
+    (:user.getlovedtracks :no-auth  (:user :limit)    "artist > name, track > name" )
+    (:track.love          :auth     (:artist :track)  "lfm"                         )
+    (:track.unlove        :auth     (:artist :track)  "lfm"                         )
+    (:auth.gettoken       :no-auth  (:api_sig)        "token"                       )
+    (:auth.getsession     :no-auth  (:token :api_sig) "session key"                 )
+    ))
 
-(defun service-method (service) (first service))
-(defun parameters (service) (second service))
-(defun query-string (service) (third service))
-(defun multi-query-p (service) (find #\, (query-string service)))
+(defun method-name (method)
+  (first method))
 
-(defun request-url (service param-values)
-  "Build and request a last.fm service"
+(defun method-name-string (method)
+  (string-downcase
+   (symbol-name (method-name method))))
+
+(defun parameter-string (param)
+  (string-downcase (symbol-name param)))
+
+(defun auth-needed-p (method)
+  (eql (second method) :auth))
+
+(defun method-parameters (method)
+  (third method))
+
+(defun find-method-entry (name)
+  (find name *methods* :key #'method-name))
+
+(defun query-string (method)
+  (fourth method))
+
+(defun multi-query-p (query)
+  "CSS selectors with ',' allow retrieving multiple tags in the same request"
+  (find #\, query))
+
+(defun param-value-list (method param-values)
+  "Build the parameter/value list according to the given method and the user
+supplied values."
+  ;; The api key and method is needed for all calls.
+  (let ((result `(("api_key" . ,*api-key*)
+                  ("method" . ,(method-name-string method))
+                  ;; Pair the method parameters with the user supplied values
+                  ,@(mapcar (lambda (p v)
+                              (cons (parameter-string p) v))
+                            (method-parameters method)
+                            param-values))))
+    ;; For methods that require authentication, the session key also needs to be
+    ;; added as a parameter together with the signature. The signature is
+    ;; obtained thus: The parameter list, including the session key needs to be
+    ;; sorted and transformed into a string. The shared secret is then appended
+    ;; to this string. The string is then signed and then the signature
+    ;; (api_sig) is added to the list of parameters.
+    (if (auth-needed-p method)
+        (progn (push `("sk" . ,*sk*) result)
+               (setf result (sort result #'string-lessp :key #'method-name))
+               (push `("api_sig" . ,(sign (concatenate 'string
+                                                       (param-value-list->string result)
+                                                       *shared-secret*)))
+                     (cdr (last result)))
+               result)
+        result)))
+
+(defun param-value-list->string (list)
+  "The signing procedure for authentication needs all the parameters and values
+lumped together in one big string without equal or ampersand symbols between
+them."
+  (format nil "~{~{~a~a~}~}"
+          (mapcar (lambda (p)
+                    ;; The format procedure needs a list of lists.
+                    (list (first p) (rest p)))
+                  list)))
+
+(defun request-method (method param-values)
+  "Make the request through the Last.fm API"
   (http-request *base-url*
-     :parameters
-     `(("api_key" . ,*api-key*)
-       ("method" .  ,(string-downcase (symbol-name (service-method service))))
-       ;; Build alists by matching up the service's
-       ;; parameters with the user supplied param-values.
-       ,@(mapcar (lambda (m v)
-                   (cons (string-downcase (symbol-name m)) v))
-                 (parameters service)
-                 param-values))))
+                :method :post
+                :parameters
+                (param-value-list method
+                                  param-values)))
 
-(defun lastfm-get (what &rest param-values)
-  (let ((service (find what *services* :key #'first)))
-    (when service
-      (let* ((request (request-url service param-values))
-             ;; Tell plump to parse the request as an xml
-             (*tag-dispatchers* *xml-tags*)
-             (query (query-string service))
-             (result ($ (inline (parse request))
-                       query (text))))
-        ;; For top tracks, for example, the result vector contains
-        ;; the artist name in its first half and the song name in its second
-        (if (multi-query-p service)
-            (let ((len (length result)))
-              (map 'list (lambda (p1 p2)
-                           (list p1 p2))
-                   (subseq result 0 (/ len 2))
-                   (subseq result (/ len 2) len)))
-            (map 'list #'identity result))))))
+(defun parse-request-results (html query)
+  (let* ((*tag-dispatchers* *xml-tags*) ;; Tell plump to parse the request as an xml
+         (result ($ (inline (parse html)) query (text))))
+    ;; For top tracks, for example, the result vector contains
+    ;; the artist name in its first half and the song name in its second
+    ;; In either case, return a list as a result and not a vector.
+    (if (multi-query-p query)
+        (let ((len (length result)))
+          (map 'list (lambda (p1 p2)
+                       (list p1 p2))
+               (subseq result 0 (/ len 2))
+               (subseq result (/ len 2) len)))
+        (map 'list #'identity result))))
 
-(memoize 'lastfm-get)
+(defun lfm-request (method-name &rest param-values)
+  (let ((method (find-method-entry method-name)))
+    (when method
+      (parse-request-results
+       (request-method method param-values)
+       (query-string method)))))
+
+;; (lfm-request :artist.gettoptracks "anathema" "3")
+;; (lfm-request :track.unlove "anathema" "thin air")
+
 (defun sign (str)
   (subseq
    (with-output-to-string (s)
@@ -118,45 +174,3 @@
                                               *sk*
                                               "thin air"
                                               *shared-secret*))))))
-
-(defparameter *auth-methods*
-  '(((:track.love :auth) (artist track))
-    ;; ((:track.love :auth) (api_key artist method track sk))
-    ((:track.unlove :auth) (artist track))))
-
-(defun parameters-string (service &rest values)
-  (let* ((params (parameters service))
-         (service-name (first (first service)))
-         (sorted-request-parameters
-           (sort `(("api_key" . ,*api-key*)
-                   ("method" . ,(string-downcase (symbol-name service-name)))
-                   ("sk" . ,*sk*)
-                   ,@(mapcar #'cons (mapcar (lambda (p)
-                                              (string-downcase
-                                               (symbol-name p)))
-                                            params)
-                             values))
-                 #'string-lessp
-                 :key #'first))
-         (sorted-string (format nil "~{~{~a~a~}~}"
-                                (mapcar #'cons->list
-                                        (append sorted-request-parameters
-                                                `(("" . ,*shared-secret*))))))
-         (api-sig (sign sorted-string))
-         (signed-request-parameters
-           (append sorted-request-parameters `(("api_sig" . ,api-sig)))))
-    (http-request "http://ws.audioscrobbler.com/2.0/" 
-                  :method :post
-                  :parameters signed-request-parameters)
-    ))
-
-;; (let ((service (first *auth-methods*)))
-;;   (parameters-string service "anathema" "thin air"))
-
-;; (let ((service (second *auth-methods*)))
-;;   (parameters-string service "anathema" "thin air"))
-
-(defun cons->list (cell)
-  "Transform (1 . 2) into (1 2)"
-  (list (first cell)
-        (rest cell)))
