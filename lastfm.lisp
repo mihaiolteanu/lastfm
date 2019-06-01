@@ -11,29 +11,37 @@
 
 (defparameter *base-url* "http://ws.audioscrobbler.com/2.0/")
 (defparameter *methods*
-  '((:artist.getinfo      :no-auth  (:artist)         "bio summary"                 )
-    (:artist.getsimilar   :no-auth  (:artist :limit)  "artist name"                 )
-    (:artist.gettoptags   :no-auth  (:artist)         "tag name"                    )
-    (:artist.gettopalbums :no-auth  (:artist :limit)  "album > name"                )
-    (:artist.gettoptracks :no-auth  (:artist :limit)  "track > name"                )
-    (:artist.search       :no-auth  (:artist :limit)  "artist name"                 )
-    (:album.getinfo       :no-auth  (:artist :album)  "track > name"                )
-    (:tag.getinfo         :no-auth  (:tag)            "summary"                     )
-    (:tag.gettoptracks    :no-auth  (:tag :limit)     "artist > name, track > name" )
-    (:tag.gettopartists   :no-auth  (:tag :limit)     "artist name"                 )
-    (:user.getlovedtracks :no-auth  (:user :limit)    "artist > name, track > name" )
-    (:track.love          :auth     (:artist :track)  "lfm"                         )
-    (:track.unlove        :auth     (:artist :track)  "lfm"                         )
-    (:auth.gettoken       :no-auth  (:api_sig)        "token"                       )
-    (:auth.getsession     :no-auth  (:token :api_sig) "session key"                 )
+  '((artist-getinfo      :no-auth  (artist)        "bio summary"                 )
+    (artist-getsimilar   :no-auth  (artist limit)  "artist name"                 )
+    (artist-gettoptags   :no-auth  (artist)        "tag name"                    )
+    (artist-gettopalbums :no-auth  (artist limit)  "album > name"                )
+    (artist-gettoptracks :no-auth  (artist limit)  "track > name"                )
+    (artist-search       :no-auth  (artist limit)  "artist name"                 )
+    (album-getinfo       :no-auth  (artist album)  "track > name"                )
+    (tag-getinfo         :no-auth  (tag)           "summary"                     )
+    (tag-gettoptracks    :no-auth  (tag limit)     "artist > name, track > name" )
+    (tag-gettopartists   :no-auth  (tag limit)     "artist name"                 )
+    (user-getlovedtracks :no-auth  (user limit)    "artist > name, track > name" )
+    (track-love          :auth     (artist track)  "lfm"                         )
+    (track-unlove        :auth     (artist track)  "lfm"                         )
+    (auth-gettoken       :no-auth  (api_sig)       "token"                       )
+    (auth-getsession     :no-auth  (token api_sig) "session key"                 )
     ))
+
+(defmacro build-lastfm-functions ()
+  `(progn
+     ,@(mapcar (lambda (method)
+                 `(defun ,(method-name method) (,@(method-parameters method))
+                    (lfm-request ',(method-name method) ,@(method-parameters method))))
+               *methods*)))
 
 (defun method-name (method)
   (first method))
 
 (defun method-name-string (method)
+  "A method name string in the format requested by the Last.fm API parameters"
   (string-downcase
-   (symbol-name (method-name method))))
+   (substitute #\. #\- (symbol-name (method-name method)))))
 
 (defun parameter-string (param)
   (string-downcase (symbol-name param)))
