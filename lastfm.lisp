@@ -46,8 +46,6 @@ don't need authentication."
                       ',(find-method-entry name) ,@params))))
                *methods*)))
 
-(build-lastfm-functions)
-
 (defun add-sk-to-rcfile (sk)
   "Add the session key to the user config file."
   (with-open-file (config #P"~/.config/.lastfm.lisp"
@@ -127,28 +125,25 @@ supplied values."
     (cond ((auth-needed-p method)
            (progn (push `("sk" . ,*sk*) result)
                   (setf result (sort result #'string-lessp :key #'method-name))
-                  (push `("api_sig" . ,(sign (concatenate 'string
-                                                          (param-value-list->string result)
-                                                          *shared-secret*)))
+                  (push `("api_sig" . ,(sign (request-string result)))
                         (cdr (last result)))
                   result))
           ((session-key-p method)
-           (progn (push `("api_sig" . ,(sign (concatenate 'string
-                                                          (param-value-list->string result)
-                                                          *shared-secret*)))
+           (progn (push `("api_sig" . ,(sign (request-string result)))
                         (cdr (last result)))
                   result))
           (t result))))
 
-(defun param-value-list->string (list)
+(defun request-string (params)
   "The signing procedure for authentication needs all the parameters and values
 lumped together in one big string without equal or ampersand symbols between
 them."
-  (format nil "~{~{~a~a~}~}"
-          (mapcar (lambda (p)
-                    ;; The format procedure needs a list of lists.
-                    (list (first p) (rest p)))
-                  list)))
+  (let ((str (format nil "~{~{~a~a~}~}"
+                     (mapcar (lambda (p)
+                               ;; The format procedure needs a list of lists.
+                               (list (first p) (rest p)))
+                             params))))
+    (concatenate 'string str *shared-secret*)))
 
 (defun request-method (method param-values)
   "Make the request through the Last.fm API"
