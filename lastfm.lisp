@@ -1,6 +1,8 @@
 ;;;; lastfm.lisp
 (in-package :lastfm)
 
+(eval-when (compile)
+
 (defun config (&key api-key shared-secret username (sk ""))
   (defparameter *api-key* api-key)
   (defparameter *shared-secret* shared-secret)
@@ -179,3 +181,7 @@ them."
       (format nil "echo -n ~a | md5sum" str)
       :output s))
    0 32))
+)                                       ;end eval-when
+
+(load-rc-file)
+(build-lastfm-functions)
