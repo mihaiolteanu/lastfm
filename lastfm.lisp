@@ -29,11 +29,12 @@
     ))
 
 (defmacro build-lastfm-functions ()
-  `(progn
-     ,@(mapcar (lambda (method)
-                 `(defun ,(method-name method) (,@(method-parameters method))
-                    (lfm-request ',(method-name method) ,@(method-parameters method))))
-               *methods*)))
+  `(progn ,@(mapcar (lambda (method)
+                      (let ((name (method-name method))
+                            (params (method-parameters method)))
+                        `(defun ,name ,params
+                           (lfm-request ',(find-method-entry name) ,@params))))
+                    *methods*)))
 
 (defun method-name (method)
   (first method))
@@ -121,15 +122,10 @@ them."
                (subseq result (/ len 2) len)))
         (map 'list #'identity result))))
 
-(defun lfm-request (method-name &rest param-values)
-  (let ((method (find-method-entry method-name)))
-    (when method
-      (parse-request-results
-       (request-method method param-values)
-       (query-string method)))))
-
-;; (lfm-request :artist.gettoptracks "anathema" "3")
-;; (lfm-request :track.unlove "anathema" "thin air")
+(defun lfm-request (method &rest param-values)
+  (parse-request-results
+   (request-method method param-values)
+   (query-string method)))
 
 (defun sign (str)
   (subseq
