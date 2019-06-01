@@ -29,12 +29,18 @@
     ))
 
 (defmacro build-lastfm-functions ()
-  `(progn ,@(mapcar (lambda (method)
-                      (let ((name (method-name method))
-                            (params (method-parameters method)))
-                        `(defun ,name ,params
-                           (lfm-request ',(find-method-entry name) ,@params))))
-                    *methods*)))
+  `(progn
+     ,@(mapcar (lambda (method)
+                 (let ((name (method-name method))
+                       (params (method-parameters method)))                   
+                   `(progn                      
+                      (defun ,name ,params ;; Build function with the method name
+                             (lfm-request ',(find-method-entry name) ,@params))
+                      ;; Memoize calls that don't need authentication
+                      ,(unless (auth-needed-p method)
+                         `(memoize ',name)))))
+               *methods*)))
+
 
 (defun method-name (method)
   (first method))
