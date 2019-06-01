@@ -7,7 +7,8 @@
   (defparameter *username* username)
   (defparameter *sk* sk))
 
-(load #P"~/.config/.lastfm.lisp")
+(defun load-rc-file ()
+  (load #P"~/.config/.lastfm.lisp"))
 
 (defparameter *base-url* "http://ws.audioscrobbler.com/2.0/")
 (defparameter *methods*
@@ -24,8 +25,9 @@
     (user-getlovedtracks :no-auth  (user limit)    "artist > name, track > name" )
     (track-love          :auth     (artist track)  "lfm"                         )
     (track-unlove        :auth     (artist track)  "lfm"                         )
-    (auth-gettoken       :no-auth  (api_sig)       "token"                       )
-    (auth-getsession     :no-auth  (token api_sig) "session key"                 )
+    ;; Services that only need to be called once, to get the session key (sk)
+    (auth-gettoken       :sk       ()              "token"                       )
+    (auth-getsession     :sk       (token)         "session key"                 )
     ))
 
 (defmacro build-lastfm-functions ()
@@ -35,7 +37,8 @@ don't need authentication."
      ,@(mapcar (lambda (method)
                  (let ((name (method-name method))
                        (params (method-parameters method)))
-                   `(,(if (auth-needed-p method)
+                   `(,(if (or (auth-needed-p method)
+                              (session-key-p method))
                           'defun
                           'defmemo)
                      ,name ,params
@@ -43,6 +46,36 @@ don't need authentication."
                       ',(find-method-entry name) ,@params))))
                *methods*)))
 
+(build-lastfm-functions)
+
+(defun add-sk-to-rcfile (sk)
+  "Add the session key to the user config file."
+  (with-open-file (config #P"~/.config/.lastfm.lisp"
+                          :if-exists :overwrite
+                          :direction :io)
+    (file-position config 0)
+    (let ((contents (read config)))
+      (file-position config 0)
+      (write (append contents (list :sk sk)) :stream config))))
+
+(defun authorize-user (token)
+  "Open the broswer and let the user authorize the application."
+    (uiop:run-program
+     (format nil "xdg-open \"http://www.last.fm/api/auth/?api_key=~a\&token=~a\""
+             *api-key* token)))
+
+(defun generate-session-key ()
+  "Fetch a token, and then let the user authorize the application in his
+  browser. Only after the user authorizes the application can the session key
+  fetching continue. Thus, we wait until a return from the breakpoint is
+  signaled by the user. After that, call last.fm again to fetch the session key,
+  save it to the rc-file and reload the rc-file."
+  (let ((token (first (auth-gettoken))))
+    (authorize-user token)
+    (break "Continue after authorization is granted in the browser")
+    (let ((sk (first (auth-getsession token))))
+      (add-sk-to-rcfile sk)
+      (load-rc-file))))
 
 (defun method-name (method)
   (first method))
@@ -57,6 +90,9 @@ don't need authentication."
 
 (defun auth-needed-p (method)
   (eql (second method) :auth))
+
+(defun session-key-p (method)
+  (eql (second method) :sk))
 
 (defun method-parameters (method)
   (third method))
@@ -88,15 +124,21 @@ supplied values."
     ;; sorted and transformed into a string. The shared secret is then appended
     ;; to this string. The string is then signed and then the signature
     ;; (api_sig) is added to the list of parameters.
-    (if (auth-needed-p method)
-        (progn (push `("sk" . ,*sk*) result)
-               (setf result (sort result #'string-lessp :key #'method-name))
-               (push `("api_sig" . ,(sign (concatenate 'string
-                                                       (param-value-list->string result)
-                                                       *shared-secret*)))
-                     (cdr (last result)))
-               result)
-        result)))
+    (cond ((auth-needed-p method)
+           (progn (push `("sk" . ,*sk*) result)
+                  (setf result (sort result #'string-lessp :key #'method-name))
+                  (push `("api_sig" . ,(sign (concatenate 'string
+                                                          (param-value-list->string result)
+                                                          *shared-secret*)))
+                        (cdr (last result)))
+                  result))
+          ((session-key-p method)
+           (progn (push `("api_sig" . ,(sign (concatenate 'string
+                                                          (param-value-list->string result)
+                                                          *shared-secret*)))
+                        (cdr (last result)))
+                  result))
+          (t result))))
 
 (defun param-value-list->string (list)
   "The signing procedure for authentication needs all the parameters and values
@@ -142,47 +184,3 @@ them."
       (format nil "echo -n ~a | md5sum" str)
       :output s))
    0 32))
-
-(let ((token nil))
-  (defun fetch-request-token ()
-    (if token
-        token
-        (setf token
-              (first (lastfm-get :auth.gettoken
-                                 (sign (format nil "api_key~amethodauth.gettoken~a"
-                                                   *api-key* *shared-secret*)))))))
-
-  (defun authorize-user ()
-    (uiop:run-program
-     (format nil "xdg-open \"http://www.last.fm/api/auth/?api_key=~a\&token=~a\""
-             *api-key* (fetch-request-token))))
-
-  (defun fetch-web-service-session ()
-    (lastfm-get :auth.getsession
-                (fetch-request-token)
-                (sign (format nil
-                              "api_key~amethodauth.getsessiontoken~a~a"
-                              *api-key*
-                              (fetch-request-token)
-                              *shared-secret*)))))
-
-;; (authorize-user)
-;; (fetch-web-service-session)
-
-(defun love-track-example ()
-  (http-request "http://ws.audioscrobbler.com/2.0/" 
-                :method :post
-                :parameters
-                `(("api_key" . ,*api-key*)
-                  ("artist" . "anathema")
-                  ("method" . "track.love")
-                  ("sk" . ,*sk*)
-                  ("track" . "thin air")
-                  ("api_sig" . ,(sign (format nil
-                                              "api_key~aartist~amethod~ask~atrack~a~a"
-                                              *api-key*
-                                              "anathema"
-                                              "track.love"
-                                              *sk*
-                                              "thin air"
-                                              *shared-secret*))))))
