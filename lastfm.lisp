@@ -29,16 +29,18 @@
     ))
 
 (defmacro build-lastfm-functions ()
+  "Create a function for each of the last.fm methods and memoize the ones that
+don't need authentication."
   `(progn
      ,@(mapcar (lambda (method)
                  (let ((name (method-name method))
-                       (params (method-parameters method)))                   
-                   `(progn                      
-                      (defun ,name ,params ;; Build function with the method name
-                             (lfm-request ',(find-method-entry name) ,@params))
-                      ;; Memoize calls that don't need authentication
-                      ,(unless (auth-needed-p method)
-                         `(memoize ',name)))))
+                       (params (method-parameters method)))
+                   `(,(if (auth-needed-p method)
+                          'defun
+                          'defmemo)
+                     ,name ,params
+                     (lfm-request
+                      ',(find-method-entry name) ,@params))))
                *methods*)))
 
 

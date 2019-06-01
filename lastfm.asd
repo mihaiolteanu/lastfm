@@ -8,7 +8,7 @@
   :depends-on (:drakma
                :plump
                :lquery
-               :fare-memoization)
+               :defmemo)
   :serial t
   :components ((:file "package") 
                (:file "lastfm"))

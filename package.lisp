@@ -1,5 +1,5 @@
 ;;;; package.lisp
 
 (defpackage :lastfm
-  (:use :cl :drakma :plump :lquery :fare-memoization)
+  (:use :cl :drakma :plump :lquery :defmemo)
   (:export lastfm-get))
