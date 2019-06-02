@@ -43,9 +43,8 @@ don't need authentication."
                               (session-key-p method))
                           'defun
                           'defmemo)
-                     ,name ,params
-                     (lfm-request
-                      ',(find-method-entry name) ,@params))))
+                     ,name ,params      ;function name with its parameters
+                     (lfm-request ',method ,@params))))
                *methods*)))
 
 (defun add-sk-to-rcfile (sk)
