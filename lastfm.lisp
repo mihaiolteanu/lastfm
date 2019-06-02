@@ -138,7 +138,7 @@ supplied values."
 (defun request-string (params)
   "The signing procedure for authentication needs all the parameters and values
 lumped together in one big string without equal or ampersand symbols between
-them."
+them, and with the shared secret appended to the end of this string."
   (let ((str (format nil "~{~{~a~a~}~}"
                      (mapcar (lambda (p)
                                ;; The format procedure needs a list of lists.
