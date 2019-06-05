@@ -180,7 +180,8 @@ them, and with the shared secret appended to the end of this string."
       (format nil "echo -n ~a | md5sum" str)
       :output s))
    0 32))
-)                                       ;end eval-when
 
 (load-rc-file)
+)                                       ;end eval-when
+
 (build-lastfm-functions)
