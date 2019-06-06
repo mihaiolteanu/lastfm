@@ -1,7 +1,7 @@
 ;;;; lastfm.lisp
 (in-package :lastfm)
 
-(eval-when (compile)
+(eval-when (:compile-toplevel :execute :load-toplevel)
 
 (defun config (&key api-key shared-secret username (sk ""))
   (defparameter *api-key* api-key)
@@ -194,7 +194,7 @@ them, and with the shared secret appended to the end of this string."
       :output s))
    0 32))
 
-(load-rc-file)
-)                                       ;end eval-when
+(load-rc-file))                         ;end eval-when
 
+;; Build the functions after everything else has already loaded.
 (build-lastfm-functions)
