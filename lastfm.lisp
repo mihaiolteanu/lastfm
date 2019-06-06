@@ -147,13 +147,25 @@ them, and with the shared secret appended to the end of this string."
                              params))))
     (concatenate 'string str *shared-secret*)))
 
-(defun request-method (method param-values)
+(defun request-method (method param-values &key (retries 3))
   "Make the request through the Last.fm API"
-  (http-request *base-url*
-                :method :post
-                :parameters
-                (param-value-list method
-                                  param-values)))
+  (let* ((resp (http-request *base-url*
+                             :method :post
+                             :parameters
+                             (param-value-list method param-values)))
+         (title (lquery:$ (inline (plump:parse resp)) "title" (text))))
+    ;; Sometimes, the exact same last.fm api call returns a 500 error, saying
+    ;; the length is too big. I've tried changing the non-auth metods calls to
+    ;; :get instead of :post, but then the sporadic error is different, saying
+    ;; "this get method does not exists" or something similar. I guess this is
+    ;; some last.fm error. If if does happen, then the response page will have a
+    ;; title tag with the error code. If that's the case, we'll retry the call
+    ;; for a few times.
+    (if (emptyp title)
+        resp                            ;Valid response; return it
+        (if (> retries 0)
+            (request-method method param-values :retries (- retries 1))
+            nil))))
 
 (defun parse-request-results (html query)
   (let* ((*tag-dispatchers* *xml-tags*) ;; Tell plump to parse the request as an xml
