@@ -115,7 +115,10 @@ supplied values."
                   ("method" . ,(method-name-string method))
                   ;; Pair the method parameters with the user supplied values
                   ,@(mapcar (lambda (p v)
-                              (cons (parameter-string p) v))
+                              (cons (parameter-string p)
+                                    ;; Make sure the value is a string
+                                    (or (and (stringp v) v)
+                                        (write-to-string v))))
                             (method-parameters method)
                             param-values))))
     ;; For methods that require authentication, the session key also needs to be
@@ -202,19 +205,19 @@ them, and with the shared secret appended to the end of this string."
 
 ;;; Extra functionality not covered by the last.fm API
 
-(defun random-artist-song (artist &optional (limit "20"))
+(defun random-artist-song (artist &optional (limit 20))
   (random-elt (artist-gettoptracks artist limit)))
 
-(defun random-similar-artist (artist &optional (limit "20"))
+(defun random-similar-artist (artist &optional (limit 20))
   (random-elt (artist-getsimilar artist limit)))
 
-(defun random-user-loved-song (user &optional (limit "20"))
+(defun random-user-loved-song (user &optional (limit 20))
   (random-elt (user-getlovedtracks user limit)))
 
-(defun random-tag-song (tag &optional (limit "20"))
+(defun random-tag-song (tag &optional (limit 20))
   (random-elt (tag-gettoptracks tag limit)))
 
-(defun random-tag-artist (tag &optional (limit "20"))
+(defun random-tag-artist (tag &optional (limit 20))
   (random-elt (tag-gettopartists tag limit)))
 
 (defun create-generator (fn name nitems random)
