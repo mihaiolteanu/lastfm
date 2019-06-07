@@ -8,7 +8,9 @@
   :depends-on (:drakma
                :plump
                :lquery
-               :defmemo)
+               :defmemo
+               :alexandria
+               :generators)
   :serial t
   :components ((:file "package") 
                (:file "lastfm"))

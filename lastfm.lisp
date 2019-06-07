@@ -198,3 +198,83 @@ them, and with the shared secret appended to the end of this string."
 
 ;; Build the functions after everything else has already loaded.
 (build-lastfm-functions)
+
+
+(defun random-artist-song (artist &optional (limit "20"))
+  (random-elt (artist-gettoptracks artist limit)))
+
+(defun random-similar-artist (artist &optional (limit "20"))
+  (random-elt (artist-getsimilar artist limit)))
+
+(defun random-user-loved-song (user &optional (limit "20"))
+  (random-elt (user-getlovedtracks user limit)))
+
+(defun random-tag-song (tag &optional (limit "20"))
+  (random-elt (tag-gettoptracks tag limit)))
+
+(defun random-tag-artist (tag &optional (limit "20"))
+  (random-elt (tag-gettopartists tag limit)))
+
+(defun artist-songs (artist nsongs random)
+  "Return an infinite songs generator. If random is T, every new song is picked
+at random from the artists' first best nsongs of all time, as seen on the
+artist's last.fm page. If random is nil, the songs are picked in order. After
+the last song, the first song is returned again, ad infinitum."
+  (make-generator ()
+    (if random
+        (loop for song = (random-artist-song artist nsongs)
+                then (random-artist-song artist nsongs)
+              do (yield song))
+        (let ((songs (artist-gettoptracks artist nsongs)))
+          ;; Make sure the generator is infinite.
+          (loop for song in (apply #'circular-list
+                                   songs)
+                do (yield song))))))
+
+(defun artist-similar-songs (artist nartists nsongs)
+  "Return an infinite songs generator. Every new song is picked by first
+  selecting a random artist from the first nartists similar to the given artist,
+  according to the last.fm info. From this random artist a random song is picked
+  from the first best nsongs according to the last.fm info. When called, the
+  generator returns a list of two items, an artist and a song."
+  (make-generator ()
+    (do* ((rartist (random-similar-artist artist nartists)
+                   (random-similar-artist artist nartists))
+          (song (random-artist-song rartist nsongs)
+                (random-artist-song rartist nsongs)))
+         ((or (null rartist)
+              (null song)))
+      (yield (list rartist song)))))
+
+(defun user-songs (nsongs random &optional (user *username*))
+  (make-generator ()
+    (if random
+        (loop for song = (random-user-loved-song user nsongs)
+                then (random-user-loved-song user nsongs)
+              do (yield song))
+        (let ((songs (user-getlovedtracks user nsongs)))
+          (loop for song in (apply #'circular-list
+                                   songs)
+                do (yield song))))))
+
+(defun tag-songs (tag nsongs random)
+  (make-generator ()
+    (if random
+        (loop for song = (random-tag-song tag nsongs)
+                then (random-tag-song tag nsongs)
+              do (yield song))
+        (let ((songs (tag-gettoptracks tag nsongs)))
+          (loop for song in (apply #'circular-list
+                                   songs)
+                do (yield song))))))
+
+(defun tag-artist-songs (tag nartists nsongs)
+  (make-generator ()
+    (do* ((rartist (random-tag-artist tag nartists)
+                   (random-tag-artist tag nartists))
+          (song (random-artist-song rartist nsongs)
+                (random-artist-song rartist nsongs)))
+         ((or (null rartist)
+              (null song)))
+      (yield (list rartist song)))))
+
