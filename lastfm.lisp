@@ -207,6 +207,21 @@ them, and with the shared secret appended to the end of this string."
 
 ;;; Extra functionality not covered by the last.fm API
 
+(defmemo song-youtube-url (artist song)
+  "Since there is no youtube link available through the last.fm API,
+try and get it from the last.fm song's page."
+  (let* ((url (format nil "https://www.last.fm/music/~a/_/~a"
+                      (substitute #\+ #\Space artist)
+                      (substitute #\+ #\Space song)))
+         (request (http-request url))
+         (links ($ (inline (plump:parse request))
+                  "[data-playlink-affiliate]" (attr "data-youtube-url") )))
+    (if (> (length links) 0)
+        ;; Two identical links are available on the page.
+        (aref links 0)
+        ;; This song has no youtube link information.
+        nil)))
+
 (defun random-artist-song (artist &optional (limit 20))
   (random-elt (artist-gettoptracks artist limit)))
 
