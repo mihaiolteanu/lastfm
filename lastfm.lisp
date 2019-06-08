@@ -222,28 +222,35 @@ them, and with the shared secret appended to the end of this string."
 (defun random-tag-artist (tag &optional (limit 20))
   (random-elt (tag-gettopartists tag limit)))
 
-(defun create-generator (fn name nitems random)
+(defun create-generator (fn name nitems random &key yield-name)
   (if random
       (make-generator ()
         (loop for item = (random-elt (funcall fn name nitems))
                 then (random-elt (funcall fn name nitems))
-              do (yield item)))
+              do (yield (if yield-name
+                            (list name item)
+                            item))))
       (make-generator ()
         (loop for item in (apply #'circular-list (funcall fn name nitems))
-              do (yield item)))))
+              do (yield (if yield-name
+                            (list name item)
+                            item))))))
 
 (defun artist-songs (artist nsongs random)
   "Return an infinite songs generator. If random is T, every new song is picked
 at random from the artists' first best nsongs of all time, as seen on the
 artist's last.fm page. If random is nil, the songs are picked in order. After
 the last song, the first song is returned again, ad infinitum."
-  (create-generator #'artist-gettoptracks artist nsongs random))
+  (create-generator #'artist-gettoptracks artist nsongs random
+                    :yield-name T))
 
 (defun tag-songs (tagname nsongs random)
-  (create-generator #'tag-gettoptracks tagname nsongs random))
+  (create-generator #'tag-gettoptracks tagname nsongs random
+                    :yield-name nil))
 
 (defun user-songs (username nsongs random)
-  (create-generator #'user-getlovedtracks username nsongs random))
+  (create-generator #'user-getlovedtracks username nsongs random
+                    :yield-name nil))
 
 (defun create-double-generator (artist-fn name nartists nsongs)
   (make-generator ()
