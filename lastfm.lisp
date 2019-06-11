@@ -27,6 +27,7 @@
     (user-getlovedtracks :no-auth  (user limit)    "artist > name, track > name" )
     (track-love          :auth     (artist track)  "lfm"                         )
     (track-unlove        :auth     (artist track)  "lfm"                         )
+    (track-scrobble      :auth     (artist track timestamp)  "lfm"               )
     ;; Services that only need to be called once, to get the session key (sk)
     (auth-gettoken       :sk       ()              "token"                       )
     (auth-getsession     :sk       (token)         "session key"                 )
