@@ -5,6 +5,8 @@
   (:import-from :alexandria :emptyp)
   (:import-from :alexandria :random-elt)
   (:import-from :alexandria :circular-list)
+  (:import-from :uiop :file-exists-p)
+  (:import-from :uiop :run-program)
   (:export generate-session-key
            ;; Aux functionality
            song-youtube-url

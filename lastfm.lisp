@@ -15,7 +15,7 @@
   exist. The user will have to update this file, otherwise, all calls willl
   return NIL."
   (let ((config-file #P"~/.config/.lastfm.lisp"))
-    (if (uiop:file-exists-p config-file)
+    (if (file-exists-p config-file)
         (load config-file)
         (with-open-file (file config-file
                               :if-does-not-exist :create
