@@ -4,13 +4,28 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
 
 (defun config (&key api-key shared-secret username (sk ""))
+  "This function is called from the user config file once it is loaded."
   (defparameter *api-key* api-key)
   (defparameter *shared-secret* shared-secret)
   (defparameter *username* username)
   (defparameter *sk* sk))
 
 (defun load-rc-file ()
-  (load #P"~/.config/.lastfm.lisp"))
+  "Load the config file. Create it with empty strings if the file does not
+  exist. The user will have to update this file, otherwise, all calls willl
+  return NIL."
+  (let ((config-file #P"~/.config/.lastfm.lisp"))
+    (if (uiop:file-exists-p config-file)
+        (load config-file)
+        (with-open-file (file config-file
+                              :if-does-not-exist :create
+                              :direction :output)
+          (file-position file 0)
+          (write '(CONFIG
+                   :API-KEY ""
+                   :SHARED-SECRET ""
+                   :USERNAME "")
+                 :stream file)))))
 
 (defparameter *base-url* "http://ws.audioscrobbler.com/2.0/")
 (defparameter *methods*
