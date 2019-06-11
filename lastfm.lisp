@@ -14,23 +14,28 @@
 
 (defparameter *base-url* "http://ws.audioscrobbler.com/2.0/")
 (defparameter *methods*
-  '((artist-getinfo      :no-auth  (artist)        "bio summary"                 )
+  '(;; Album
+    (album-getinfo       :no-auth  (artist album)  "track > name"                )
+    ;; Artist
+    (artist-getinfo      :no-auth  (artist)        "bio summary"                 )
     (artist-getsimilar   :no-auth  (artist limit)  "artist name"                 )
     (artist-gettoptags   :no-auth  (artist)        "tag name"                    )
     (artist-gettopalbums :no-auth  (artist limit)  "album > name"                )
     (artist-gettoptracks :no-auth  (artist limit)  "track > name"                )
     (artist-search       :no-auth  (artist limit)  "artist name"                 )
-    (album-getinfo       :no-auth  (artist album)  "track > name"                )
+    ;; Auth (only need to be called once, to get the session key (sk))
+    (auth-gettoken       :sk       ()              "token"                       )
+    (auth-getsession     :sk       (token)         "session key"                 )
+    ;; Tag
     (tag-getinfo         :no-auth  (tag)           "summary"                     )
     (tag-gettoptracks    :no-auth  (tag limit)     "artist > name, track > name" )
     (tag-gettopartists   :no-auth  (tag limit)     "artist name"                 )
-    (user-getlovedtracks :no-auth  (user limit)    "artist > name, track > name" )
+    ;; Track
     (track-love          :auth     (artist track)  "lfm"                         )
     (track-unlove        :auth     (artist track)  "lfm"                         )
     (track-scrobble      :auth     (artist track timestamp)  "lfm"               )
-    ;; Services that only need to be called once, to get the session key (sk)
-    (auth-gettoken       :sk       ()              "token"                       )
-    (auth-getsession     :sk       (token)         "session key"                 )
+    ;; User
+    (user-getlovedtracks :no-auth  (user limit)    "artist > name, track > name" )
     ))
 
 (defun method-name (method)
