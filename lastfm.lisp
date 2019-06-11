@@ -33,6 +33,36 @@
     (auth-getsession     :sk       (token)         "session key"                 )
     ))
 
+(defun method-name (method)
+  (first method))
+
+(defun method-name-string (method)
+  "A method name string in the format requested by the Last.fm API parameters"
+  (string-downcase
+   (substitute #\. #\- (symbol-name (method-name method)))))
+
+(defun parameter-string (param)
+  (string-downcase (symbol-name param)))
+
+(defun auth-needed-p (method)
+  (eql (second method) :auth))
+
+(defun session-key-p (method)
+  (eql (second method) :sk))
+
+(defun method-parameters (method)
+  (third method))
+
+(defun find-method-entry (name)
+  (find name *methods* :key #'method-name))
+
+(defun query-string (method)
+  (fourth method))
+
+(defun multi-query-p (query)
+  "CSS selectors with ',' allow retrieving multiple tags in the same request"
+  (find #\, query))
+
 (defmacro build-lastfm-functions ()
   "Create a function for each of the last.fm methods and memoize the ones that
 don't need authentication. All the created functions are exported."
@@ -77,36 +107,6 @@ don't need authentication. All the created functions are exported."
     (let ((sk (first (auth-getsession token))))
       (add-sk-to-rcfile sk)
       (load-rc-file))))
-
-(defun method-name (method)
-  (first method))
-
-(defun method-name-string (method)
-  "A method name string in the format requested by the Last.fm API parameters"
-  (string-downcase
-   (substitute #\. #\- (symbol-name (method-name method)))))
-
-(defun parameter-string (param)
-  (string-downcase (symbol-name param)))
-
-(defun auth-needed-p (method)
-  (eql (second method) :auth))
-
-(defun session-key-p (method)
-  (eql (second method) :sk))
-
-(defun method-parameters (method)
-  (third method))
-
-(defun find-method-entry (name)
-  (find name *methods* :key #'method-name))
-
-(defun query-string (method)
-  (fourth method))
-
-(defun multi-query-p (query)
-  "CSS selectors with ',' allow retrieving multiple tags in the same request"
-  (find #\, query))
 
 (defun param-value-list (method param-values)
   "Build the parameter/value list according to the given method and the user
