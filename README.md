@@ -189,12 +189,12 @@ it and that you might find useful.
 **random-tag-artist** _tag &optional (limit 20)_
 
 ## Generators
-Generators. These will return generators that can be used by calling next on
+These will return generators that can be used by calling next on
 them. On each call, a new item is received. If the `random` parameter, where
 available, is specified as T, a random elemenent is received on each
 call. Otherwise, the elements are returned in order, as they appear on their
 respective last.fm page. After the last element is returned, the `next` call
-will again return the first one (i.e. the generator is recursive). You need to
+will again return the first one (i.e. the generator is cyclic). You need to
 use the [generators](http://quickdocs.org/generators/) library for
 that. `nparameters` specify the number of elements to be taken into
 consideration, similar to the `limit` parameter in the last.fm API case.
