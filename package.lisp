@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage :lastfm
-  (:use :cl :drakma :plump :lquery :defmemo :generators)
+  (:use :cl :drakma :plump :lquery :defmemo :generators :trivial-open-browser)
   (:import-from :alexandria :emptyp)
   (:import-from :alexandria :random-elt)
   (:import-from :alexandria :circular-list)

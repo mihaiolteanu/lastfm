@@ -111,10 +111,10 @@ don't need authentication. All the created functions are exported."
       (write (append contents (list :sk sk)) :stream config))))
 
 (defun authorize-user (token)
-  "Open the broswer and let the user authorize the application."
-    (run-program
-     (format nil "xdg-open \"http://www.last.fm/api/auth/?api_key=~a\&token=~a\""
-             *api-key* token)))
+  "Ask the user to authorize the application."
+  (open-browser
+   (format nil "http://www.last.fm/api/auth/?api_key=~a\&token=~a"
+           *api-key* token)))
 
 (defun generate-session-key ()
   "Fetch a token, and then let the user authorize the application in his

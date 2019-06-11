@@ -10,6 +10,7 @@
                :lquery
                :defmemo
                :alexandria
+               :trivial-open-browser
                :generators)
   :serial t
   :components ((:file "package") 
