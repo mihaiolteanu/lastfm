@@ -15,6 +15,7 @@
            random-tag-artist
            ;; Generators
            artist-songs
+           artist-album-songs
            tag-songs
            user-songs
            artist-similar-artists-songs
