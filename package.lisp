@@ -5,7 +5,7 @@
   (:import-from :alexandria :emptyp)
   (:import-from :alexandria :random-elt)
   (:import-from :alexandria :circular-list)
-  (:export authorize-user
+  (:export generate-session-key
            ;; Aux functionality
            song-youtube-url
            random-artist-song
