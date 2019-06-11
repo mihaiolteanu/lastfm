@@ -21,10 +21,10 @@ account and then an API account. Follow the instructions from the official
 and a shared secret. Write them down.
 
 ## Step three - create or update the config file with the API key
-Create a config file, `~/.config/.lastfm.lisp`, with the info received from
+Create a config file, `~/.lastfmrc`, with the info received from
 last.fm on step one.
 ```common-lisp
-;; ~/.config/.lastfm.lisp
+;; ~/.lastfmrc
 (CONFIG
  :API-KEY "yout-api-key-string"
  :SHARED-SECRET "your-shared-secret-string"
@@ -71,7 +71,7 @@ After that, return to your editor (Emacs) and continue from breakpoint.
 If this step is succesful, the secret key will be added to your
  config file, from step three, which should now look like this:
 ```common-lisp
-;; ~/.config/.lastfm.lisp
+;; ~/.lastfmrc
 (CONFIG
  :API-KEY "yout-api-key-string"
  :SHARED-SECRET "your-shared-secret-string"

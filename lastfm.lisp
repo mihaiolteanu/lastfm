@@ -14,7 +14,8 @@
   "Load the config file. Create it with empty strings if the file does not
   exist. The user will have to update this file, otherwise, all calls willl
   return NIL."
-  (let ((config-file #P"~/.config/.lastfm.lisp"))
+  (let ((config-file (merge-pathnames ".lastfmrc"
+                                      (user-homedir-pathname))))
     (if (file-exists-p config-file)
         (load config-file)
         (with-open-file (file config-file
