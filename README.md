@@ -4,20 +4,23 @@ services that need authentication and song generators for extra functionality.
 
 # Installation
 
-### Step one
+## Step one - installing the library and the dependencies
 
 ```bash
 # clone to local-projects for quickload access
 git clone https://github.com/mihaiolteanu/lastfm ~/quicklisp/local-projects/lastfm
+
+# API calls are signed with an external application
+sudo apt-get md5sum
 ```
 
-### Step two
+## Step two - obtain the last.fm API key
 To use this library, a last.fm API Key is needed. For that you need a last.fm
 account and then an API account. Follow the instructions from the official
 [documentation](https://www.last.fm/api) page and you will receive and api-key
 and a shared secret. Write them down.
 
-### Step three
+## Step three - create or update the config file with the API key
 Create a config file, `~/.config/.lastfm.lisp`, with the info received from
 last.fm on step one.
 ```common-lisp
@@ -31,7 +34,7 @@ One thing missing from this config file is the secret key (SK) which will be
 added by this library after the authentication process (see below) is
 completed. The authentication only needs to be done once.
 
-### Step four
+## Step four - generate the session key
 
 Load the library and generate the session key by calling the appropriate interface.
 ```common-lisp
@@ -39,11 +42,33 @@ Load the library and generate the session key by calling the appropriate interfa
 (lastfm:generate-session-key)
 ```
 This will open up the [last.fm/api/auth](last.fm/api/auth) page in your
- favorite browser and put a breakpoint in the code. You will need to grant this
+ favorite browser and put a breakpoint in the code (My app is called muse, in
+ this case. Yours might differ).
+ 
+ <table><tr><td>
+ <img
+ src="https://user-images.githubusercontent.com/8273519/59293481-f4614600-8c87-11e9-9320-7f97bb135c44.png"
+ alt="grant permission to last.fm" width="600px"/>
+</td></tr></table>
+ 
+You will need to grant this
  `lastfm` library permission to use your last.fm account ([step
- 3](https://www.last.fm/api/desktopauth) in the last.fm authentication
- process). After that, return to your editor (Emacs) and continue from
- breakpoint. If this step is succesful, the secret key will be added to your
+ 3](https://www.last.fm/api/desktopauth) in the official last.fm authentication
+ process). 
+ 
+ <table><tr><td>
+ <img
+ src="https://user-images.githubusercontent.com/8273519/59293493-f7f4cd00-8c87-11e9-8ea3-ebee572bf53f.png"
+ alt="permission granted" width="600px"/>
+</td></tr></table>
+ 
+After that, return to your editor (Emacs) and continue from breakpoint.
+ 
+ <img
+ src="https://user-images.githubusercontent.com/8273519/59293499-fa572700-8c87-11e9-87a6-0cdaea1efbb9.png"
+ alt="continue from breakpoint"/>
+ 
+If this step is succesful, the secret key will be added to your
  config file, from step three, which should now look like this:
 ```common-lisp
 ;; ~/.config/.lastfm.lisp
