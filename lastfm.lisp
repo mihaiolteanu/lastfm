@@ -112,7 +112,7 @@ don't need authentication. All the created functions are exported."
 
 (defun authorize-user (token)
   "Open the broswer and let the user authorize the application."
-    (uiop:run-program
+    (run-program
      (format nil "xdg-open \"http://www.last.fm/api/auth/?api_key=~a\&token=~a\""
              *api-key* token)))
 
@@ -216,7 +216,7 @@ them, and with the shared secret appended to the end of this string."
 (defun sign (str)
   (subseq
    (with-output-to-string (s)
-     (uiop:run-program
+     (run-program
       (format nil "echo -n ~a | md5sum" str)
       :output s))
    0 32))
