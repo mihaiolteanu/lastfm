@@ -286,8 +286,14 @@ the last song, the first song is returned again, ad infinitum."
                     :yield-name nil))
 
 (defun user-songs (username nsongs random)
+  "Return a generator with songs from a user of your choice."
   (create-generator #'user-getlovedtracks username nsongs random
                     :yield-name nil))
+
+(defun my-loved-songs (nsongs random)
+  "Return a generator with the current user loved songs. The username is the one
+specified in the .lastfmrc config file."
+  (user-songs *username* nsongs random))
 
 (defun create-double-generator (artist-fn name nartists nsongs)
   (make-generator ()

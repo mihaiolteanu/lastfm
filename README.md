@@ -216,6 +216,13 @@ consideration, similar to the `limit` parameter in the last.fm API case.
 
 **user-songs** _username nsongs random_
 
+    Return a generator with songs from a user of your choice.
+    
+**my-loved-songs** _nsongs random_
+    
+    Return a generator with the current user loved songs. The username is the
+    one specified in the .lastfmrc config file.
+
 **artist-similar-artists-songs** _artist nartists nsongs_
 
     Each call will first pick a random artist from the list of similar artists

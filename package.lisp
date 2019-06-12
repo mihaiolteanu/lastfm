@@ -20,6 +20,7 @@
            artist-album-songs
            tag-songs
            user-songs
+           my-loved-songs
            artist-similar-artists-songs
            tag-similar-artists-songs
            ;; All the other exported functions are created and exported
