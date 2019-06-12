@@ -17,7 +17,7 @@
            random-tag-artist
            ;; Generators
            artist-songs
-           artist-album-songs
+           album-songs
            tag-songs
            user-songs
            my-loved-songs

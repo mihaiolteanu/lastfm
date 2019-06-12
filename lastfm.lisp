@@ -315,7 +315,7 @@ specified in the .lastfmrc config file."
 (defun tag-similar-artists-songs (tag nartists nsongs)
   (create-double-generator #'tag-gettopartists tag nartists nsongs))
 
-(defun artist-album-songs (artist album)
+(defun album-songs (artist album)
   "Return a generator with all the songs on the artist's album."
   (make-generator ()
     (loop for song in (apply #'circular-list (album-getinfo artist album))

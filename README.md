@@ -208,7 +208,9 @@ consideration, similar to the `limit` parameter in the last.fm API case.
 
 **artist-songs** _artist nsongs random_
 
-**artist-album-songs** _artist album_
+    A generator for the artist's first best nsongs 
+
+**album-songs** _artist album_
 
     Return a non-random generator with all the songs on the artist's album.
 
