@@ -4,12 +4,19 @@ services that need authentication and song generators for extra functionality.
 
 # Installation
 
-## Step one - installing the library and the dependencies
+## Step one - install the library and the dependencies
 
 ```bash
 # clone to local-projects for quickload access
 git clone https://github.com/mihaiolteanu/lastfm ~/quicklisp/local-projects/lastfm
+```
 
+```common-lisp
+; Register the new project
+(ql:register-local-projects)
+```
+
+```bash
 # API calls are signed with an external application
 sudo apt-get md5sum
 ```
@@ -42,8 +49,8 @@ Load the library and generate the session key by calling the appropriate interfa
 (lastfm:generate-session-key)
 ```
 This will open up the [last.fm/api/auth](last.fm/api/auth) page in your
- favorite browser and put a breakpoint in the code (My app is called muse, in
- this case. Yours might differ).
+favorite browser and put a breakpoint in the code (My app is called muse, in
+this case. Yours might differ).
  
  <table><tr><td>
  <img
@@ -69,7 +76,7 @@ After that, return to your editor (Emacs) and continue from breakpoint.
  alt="continue from breakpoint"/>
  
 If this step is succesful, the secret key will be added to your
- config file, from step three, which should now look like this:
+config file, which should now look like this:
 ```common-lisp
 ;; ~/.lastfmrc
 (CONFIG
