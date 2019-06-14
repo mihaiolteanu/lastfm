@@ -151,6 +151,8 @@ be much faster and it won't result in a fresh last.fm request.
 
 **artist-search** _artist limit_
 
+    Search for a given artist and return limit number of matches as best guesses.
+
 **tag-getinfo** _tag_
 
 **tag-gettoptracks** _tag limit_
@@ -161,11 +163,13 @@ be much faster and it won't result in a fresh last.fm request.
 
 **track-love** _artist track_
     
-    Authentication needed (step 4)
+    Add this track to the list of user's loved track. The username is the one
+    specified in the .lastfmrc config file. Authentication needed (step 4)
 
 **track-unlove** _artist track_
 
-    Authentication needed (step 4)
+    Remove this track to the list of user's loved track. The username is the one
+    specified in the .lastfmrc config file. Authentication needed (step 4).
 
 **track-scrobble** _artist track timestamp_ 
 
@@ -215,6 +219,8 @@ consideration, similar to the `limit` parameter in the last.fm API case.
     Return a non-random generator with all the songs on the artist's album.
 
 **tag-songs** _tagname nsongs random_
+
+    Best nsongs generators for the given tag.
 
 **user-songs** _username nsongs random_
 
