@@ -7,6 +7,7 @@
   (:import-from :alexandria :circular-list)
   (:import-from :uiop :file-exists-p)
   (:import-from :uiop :run-program)
+  (:import-from :uiop :xdg-config-home)
   (:export generate-session-key
            ;; Aux functionality
            song-youtube-url

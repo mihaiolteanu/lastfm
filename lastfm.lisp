@@ -15,7 +15,7 @@
   exist. The user will have to update this file, otherwise, all calls willl
   return NIL."
   (let ((config-file (merge-pathnames ".lastfmrc"
-                                      (user-homedir-pathname))))
+                                      (xdg-config-home))))
     (if (file-exists-p config-file)
         (load config-file)
         (with-open-file (file config-file
