@@ -1,6 +1,7 @@
 # lastfm
-Interface for the [last.fm](www.last.fm) [API](www.last.fm/api), including the
-services that need authentication and song generators for extra functionality.
+Interface for the [last.fm](https://www.last.fm) [API](https://www.last.fm/api),
+including the services that need authentication and song generators for extra
+functionality.
 
 # Installation
 
