@@ -84,20 +84,24 @@
   "CSS selectors with ',' allow retrieving multiple tags in the same request"
   (find #\, query))
 
+(defun build-lastfm-function (method)
+  "Create and export a function for the last.fm method and memoize it if it
+doesn't need authentication."
+  (let ((name (method-name method))
+        (params (method-parameters method)))
+    `(progn (,(if (or (auth-needed-p method)
+                      (session-key-p method))
+                  'defun
+                  'defmemo)
+             ,name ,params      ;function name with its parameters
+             (lfm-request ',method ,@params))
+            (export ',(method-name method)))))
+
 (defmacro build-lastfm-functions ()
-  "Create a function for each of the last.fm methods and memoize the ones that
-don't need authentication. All the created functions are exported."
+  "Create all the last.fm functions."
   `(progn
      ,@(mapcar (lambda (method)
-                 (let ((name (method-name method))
-                       (params (method-parameters method)))
-                   `(progn (,(if (or (auth-needed-p method)
-                                     (session-key-p method))
-                                 'defun
-                                 'defmemo)
-                            ,name ,params      ;function name with its parameters
-                            (lfm-request ',method ,@params))
-                           (export ',(method-name method)))))
+                 (build-lastfm-function method))
                *methods*)))
 
 (defun add-sk-to-rcfile (sk)
