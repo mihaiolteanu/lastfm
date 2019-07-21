@@ -176,6 +176,7 @@ them, and with the shared secret appended to the end of this string."
   "Make the request through the Last.fm API"
   (let ((resp (http-request *base-url*
                              :method :post
+                             :external-format-out :utf-8
                              :parameters
                              (param-value-list method param-values))))
     ;; Sometimes, the response is nil. Try again.
