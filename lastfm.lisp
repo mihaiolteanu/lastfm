@@ -106,13 +106,15 @@ doesn't need authentication."
 
 (defun add-sk-to-rcfile (sk)
   "Add the session key to the user config file."
-  (with-open-file (config #P"~/.config/.lastfm.lisp"
-                          :if-exists :overwrite
-                          :direction :io)
-    (file-position config 0)
-    (let ((contents (read config)))
-      (file-position config 0)
-      (write (append contents (list :sk sk)) :stream config))))
+  (with-open-file (config-file
+                   (merge-pathnames ".lastfmrc"
+                                    (xdg-config-home))
+                   :if-exists :overwrite
+                   :direction :io)
+    (file-position config-file 0)
+    (let ((contents (read config-file)))
+      (file-position config-file 0)
+      (write (append contents (list :sk sk)) :stream config-file))))
 
 (defun authorize-user (token)
   "Ask the user to authorize the application."

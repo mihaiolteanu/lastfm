@@ -29,15 +29,21 @@ account and then an API account. Follow the instructions from the official
 and a shared secret. Write them down.
 
 ## Step three - create or update the config file with the API key
-Create a config file, `~/.lastfmrc`, with the info received from
-last.fm on step one.
+Create a config file with the info received from last.fm on step one.
+
 ```common-lisp
-;; ~/.lastfmrc
+;; .lastfmrc
 (CONFIG
  :API-KEY "yout-api-key-string"
  :SHARED-SECRET "your-shared-secret-string"
  :USERNAME "your-last-fm-username")
 ```
+
+This file is usually located at `~/.config/.lastfmrc`. If you want to be
+absolutely sure, evaluate `(xdg-config-home)` to find out where your config
+folder is located. Then create the `.lastfmrc` config file there with the
+contents from above.
+
 One thing missing from this config file is the secret key (SK) which will be
 added by this library after the authentication process (see below) is
 completed. The authentication only needs to be done once.
