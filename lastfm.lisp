@@ -222,7 +222,7 @@ them, and with the shared secret appended to the end of this string."
   (subseq
    (with-output-to-string (s)
      (run-program
-      (format nil "echo -n ~a | md5sum" str)
+      (format nil "echo -n \"~a\" | md5sum" str)
       :output s))
    0 32))
 
