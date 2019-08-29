@@ -10,6 +10,7 @@
                :lquery
                :defmemo
                :alexandria
+               :ironclad                ;md5sum
                :trivial-open-browser
                :generators)
   :serial t

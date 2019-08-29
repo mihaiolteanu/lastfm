@@ -17,11 +17,6 @@ git clone https://github.com/mihaiolteanu/lastfm ~/quicklisp/local-projects/last
 (ql:register-local-projects)
 ```
 
-```bash
-# API calls are signed with an external application
-sudo apt-get md5sum
-```
-
 ## Step two - obtain the last.fm API key
 To use this library, a last.fm API Key is needed. For that you need a last.fm
 account and then an API account. Follow the instructions from the official

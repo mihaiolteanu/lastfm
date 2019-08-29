@@ -221,12 +221,9 @@ them, and with the shared secret appended to the end of this string."
    (query-string method)))
 
 (defun sign (str)
-  (subseq
-   (with-output-to-string (s)
-     (run-program
-      (format nil "echo -n \"~a\" | md5sum" str)
-      :output s))
-   0 32))
+  (byte-array-to-hex-string
+   (digest-sequence :md5
+                    (ascii-string-to-byte-array str))))
 
 (load-rc-file))                         ;end eval-when
 
