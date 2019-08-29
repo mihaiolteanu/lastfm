@@ -5,7 +5,7 @@ functionality.
 
 # Installation
 
-## Step one - install the library
+## 1. Install the library
 
 Using quickload
 ```common-lisp
@@ -22,13 +22,13 @@ git clone https://github.com/mihaiolteanu/lastfm ~/quicklisp/local-projects/last
 (ql:register-local-projects)
 ```
 
-## Step two - obtain the last.fm API key
+## 2. Obtain the last.fm API key
 To use this library, a last.fm API Key is needed. For that you need a last.fm
 account and then an API account. Follow the instructions from the official
 [documentation](https://www.last.fm/api) page and you will receive and api-key
 and a shared secret. Write them down.
 
-## Step three - create or update the config file with the API key
+## 3. Create or update the config file with the API key
 Create a config file with the info received from last.fm on step one.
 
 ```common-lisp
@@ -48,7 +48,7 @@ One thing missing from this config file is the secret key (SK) which will be
 added by this library after the authentication process (see below) is
 completed. The authentication only needs to be done once.
 
-## Step four - generate the session key
+## 4. Generate the session key
 
 Load the library and generate the session key by calling the appropriate interface.
 ```common-lisp
@@ -93,8 +93,12 @@ config file, which should now look like this:
  :SK "your-secret-key-generated-at-step-four")
 ``` 
 
-If you don't follow this step, the lastfm services that need authentication
-(love/unlove track, scrobble track) won't work.
+If you don't follow this step, the lastfm services that need
+authentication (love/unlove track, scrobble track) won't work.
+
+Keep this file in a safe place. The next time you install lastfm on a
+new computer, you only need to copy this file into the correct
+location and skip all these authentication steps.
 
 # Usage
 
