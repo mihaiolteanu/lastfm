@@ -5,10 +5,15 @@ functionality.
 
 # Installation
 
-## Step one - install the library and the dependencies
+## Step one - install the library
 
+Using quickload
+```common-lisp
+(ql:quickload :lastfm)
+```
+
+Or clone it to local-projects 
 ```bash
-# clone to local-projects for quickload access
 git clone https://github.com/mihaiolteanu/lastfm ~/quicklisp/local-projects/lastfm
 ```
 
